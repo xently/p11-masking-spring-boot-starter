@@ -1,3 +1,4 @@
+### Add book
 < {%
     const ids = [];
     const randomSize = Math.floor(Math.random() * 20) + 1;
@@ -17,6 +18,17 @@ Content-Type: application/json
   "phoneNumber": "{{$random.phoneNumber.phoneNumber}}"
 }
 
-###
+### Get books
 GET http://localhost:8080/api/v1/books
 Content-Type: application/json
+
+### Get book by ID
+< {%
+    const ids = [];
+    const randomSize = Math.floor(Math.random() * 20) + 1;
+    for (let i = 0; i < randomSize; i++) {
+        ids.push(i);
+    }
+    request.variables.set("ids", ids);
+%}
+GET http://localhost:8080/api/v1/books/{{ids}}

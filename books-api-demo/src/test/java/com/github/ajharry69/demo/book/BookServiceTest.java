@@ -1,29 +1,102 @@
 package com.github.ajharry69.demo.book;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.ConsoleAppender;
 import com.github.ajharry69.demo.book.exceptions.BookNotFoundException;
+import com.github.ajharry69.log.mask.MaskingLogbackInitializer;
+import com.github.ajharry69.log.mask.MaskingService;
+import com.github.ajharry69.log.mask.P11MaskingProperties;
+import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(OutputCaptureExtension.class)
 class BookServiceTest {
-
+    private static final String RAW_EMAIL = "john.doe@example.com";
+    private static final String RAW_PHONE = "0712345678";
+    private static final String MASKED_EMAIL = "j*******@example.com";
+    private static final String MASKED_PHONE = "0*********";
     private final BookRepository bookRepository = Mockito.mock(BookRepository.class);
     private final BookService service = new BookService(bookRepository);
+
+    private static void applyLogMasking() {
+        var props = P11MaskingProperties.builder()
+                .enabled(true)
+                .maskStyle(P11MaskingProperties.MaskingStyle.PARTIAL)
+                .maskCharacter("*")
+                .fields(List.of("email", "phoneNumber"))
+                .build();
+        var maskingService = new MaskingService(props);
+
+        var context = (LoggerContext) org.slf4j.LoggerFactory.getILoggerFactory();
+        context.reset();
+
+        var encoder = new PatternLayoutEncoder();
+        encoder.setContext(context);
+        encoder.setPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -- %m%n");
+        encoder.start();
+
+        var appender = new ConsoleAppender<ILoggingEvent>();
+        appender.setContext(context);
+        appender.setEncoder(encoder);
+        appender.start();
+
+        Logger root = context.getLogger(Logger.ROOT_LOGGER_NAME);
+        root.setLevel(Level.INFO);
+        root.addAppender(appender);
+
+        new MaskingLogbackInitializer(maskingService, props).initialize();
+    }
+
+    private static String firstLineContaining(String output, String token) {
+        return output.lines()
+                .filter(line -> line.contains(token))
+                .findFirst()
+                .orElse("");
+    }
+
+    private static void assertMasked(String output, List<String> expected, List<String> unexpected) {
+        var checks = new java.util.ArrayList<Executable>();
+        for (String value : expected) {
+            checks.add(() -> assertThat(output, containsString(value)));
+        }
+        for (String value : unexpected) {
+            checks.add(() -> assertThat(output, not(containsString(value))));
+        }
+        assertAll(checks);
+    }
+
+    @BeforeEach
+    void setUp() {
+        applyLogMasking();
+    }
 
     @Test
     void shouldGetAllBooks() {
@@ -97,5 +170,76 @@ class BookServiceTest {
     void shouldDeleteBookById() {
         service.deleteBook(7L);
         verify(bookRepository).deleteById(7L);
+    }
+
+    private record LogCase(
+            String name,
+            Consumer<BookRepository> stubbing,
+            Consumer<BookService> action,
+            String marker,
+            List<String> expected,
+            List<String> unexpected
+    ) {
+        @Override
+        public @NonNull String toString() {
+            return name;
+        }
+    }
+
+    @Nested
+    class LogMasking {
+        static Stream<LogCase> logCases() {
+            return Stream.of(
+                    new LogCase(
+                            "createBook logs",
+                            repo -> {
+                                var input = new BookDto("Title", "Author", RAW_EMAIL, RAW_PHONE);
+                                var saved = Book.builder()
+                                        .id(10L)
+                                        .title(input.title())
+                                        .author(input.author())
+                                        .email(input.email())
+                                        .phoneNumber(input.phoneNumber())
+                                        .build();
+                                when(repo.save(any(Book.class))).thenReturn(saved);
+                            },
+                            svc -> svc.createBook(new BookDto("Title", "Author", RAW_EMAIL, RAW_PHONE)),
+                            "Creating book:",
+                            List.of(MASKED_EMAIL, MASKED_PHONE),
+                            List.of(RAW_EMAIL, RAW_PHONE)
+                    ),
+                    new LogCase(
+                            "updateBook logs",
+                            repo -> {
+                                var existing = Book.builder()
+                                        .id(5L)
+                                        .title("Old")
+                                        .author("Auth")
+                                        .email(RAW_EMAIL)
+                                        .phoneNumber(RAW_PHONE)
+                                        .build();
+                                when(repo.findById(5L)).thenReturn(Optional.of(existing));
+                                when(repo.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+                            },
+                            svc -> svc.updateBook(5L, new BookDto("New", "Auth2", RAW_EMAIL, RAW_PHONE)),
+                            "Updating book with id:",
+                            List.of(MASKED_EMAIL, MASKED_PHONE),
+                            List.of(RAW_EMAIL, RAW_PHONE)
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("logCases")
+        void shouldMaskLoggedOutput(LogCase logCase, CapturedOutput output) {
+            Mockito.reset(bookRepository);
+            logCase.stubbing().accept(bookRepository);
+            logCase.action().accept(service);
+
+            var line = firstLineContaining(output.getOut(), logCase.marker());
+
+            assertThat(line, not(emptyString()));
+            assertMasked(line, logCase.expected(), logCase.unexpected());
+        }
     }
 }

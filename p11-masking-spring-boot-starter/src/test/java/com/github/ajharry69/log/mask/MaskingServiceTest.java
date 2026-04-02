@@ -12,6 +12,24 @@ import static org.hamcrest.Matchers.equalTo;
 
 class MaskingServiceTest {
 
+    static Stream<String> shouldHandleNullAndEmptySafely() {
+        return Stream.of(null, "");
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void shouldHandleNullAndEmptySafely(String input) {
+        var props = P11MaskingProperties.builder()
+                .maskStyle(P11MaskingProperties.MaskingStyle.PARTIAL)
+                .maskCharacter("*")
+                .build();
+        var service = new MaskingService(props);
+
+        var actual = service.mask(input);
+
+        assertThat(actual, equalTo(input));
+    }
+
     @Nested
     class PartialMasking {
         @ParameterizedTest(name = "shouldPartiallyMaskEmail: {0} -> {1}")
@@ -75,21 +93,23 @@ class MaskingServiceTest {
         }
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void shouldHandleNullAndEmptySafely(String input) {
-        var props = P11MaskingProperties.builder()
-                .maskStyle(P11MaskingProperties.MaskingStyle.PARTIAL)
-                .maskCharacter("*")
-                .build();
-        var service = new MaskingService(props);
+    @Nested
+    class Overrides {
+        @ParameterizedTest(name = "shouldOverrideStyleAndChar: {0} -> {1}")
+        @CsvSource({
+                "1234567890, ######7890",
+                "1234, ####"
+        })
+        void shouldOverrideStyleAndMaskCharacter(String input, String expected) {
+            var props = P11MaskingProperties.builder()
+                    .maskStyle(P11MaskingProperties.MaskingStyle.PARTIAL)
+                    .maskCharacter("*")
+                    .build();
+            var service = new MaskingService(props);
 
-        var actual = service.mask(input);
+            var actual = service.mask(input, P11MaskingProperties.MaskingStyle.LAST4, "#");
 
-        assertThat(actual, equalTo(input));
-    }
-
-    static Stream<String> shouldHandleNullAndEmptySafely(){
-        return Stream.of(null, "");
+            assertThat(actual, equalTo(expected));
+        }
     }
 }

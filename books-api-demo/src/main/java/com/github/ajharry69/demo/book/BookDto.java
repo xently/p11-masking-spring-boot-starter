@@ -1,4 +1,6 @@
 package com.github.ajharry69.demo.book;
 
-public record BookDto(String title, String author, String email, String phoneNumber) {
+import com.github.ajharry69.log.mask.Mask;
+
+public record BookDto(String title, String author, @Mask String email, String phoneNumber) {
 }

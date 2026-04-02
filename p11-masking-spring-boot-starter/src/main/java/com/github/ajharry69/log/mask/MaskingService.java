@@ -8,10 +8,14 @@ public class MaskingService {
     private final P11MaskingProperties properties;
 
     public String mask(String input) {
+        return mask(input, null, null);
+    }
+
+    public String mask(String input, P11MaskingProperties.MaskingStyle styleOverride, String maskCharacterOverride) {
         if (!properties.isEnabled() || !StringUtils.hasText(input)) return input;
 
-        var ch = properties.getMaskCharacter();
-        return switch (properties.getMaskStyle()) {
+        var ch = resolveMaskCharacter(maskCharacterOverride);
+        return switch (resolveStyle(styleOverride)) {
             case FULL -> ch.repeat(8);
             case LAST4 -> {
                 if (input.length() <= 4) yield ch.repeat(input.length());
@@ -27,6 +31,20 @@ public class MaskingService {
                 if (input.length() <= 1) yield input;
                 yield input.charAt(0) + ch.repeat(input.length() - 1);
             }
+            case DEFAULT -> ch.repeat(8);
         };
+    }
+
+    private P11MaskingProperties.MaskingStyle resolveStyle(P11MaskingProperties.MaskingStyle styleOverride) {
+        var override = styleOverride == null || styleOverride == P11MaskingProperties.MaskingStyle.DEFAULT;
+        var resolved = override ? properties.getMaskStyle() : styleOverride;
+        return resolved == P11MaskingProperties.MaskingStyle.DEFAULT
+                ? P11MaskingProperties.MaskingStyle.FULL
+                : resolved;
+    }
+
+    private String resolveMaskCharacter(String maskCharacterOverride) {
+        if (StringUtils.hasText(maskCharacterOverride)) return maskCharacterOverride;
+        return StringUtils.hasText(properties.getMaskCharacter()) ? properties.getMaskCharacter() : "*";
     }
 }

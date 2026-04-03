@@ -31,12 +31,6 @@ public class MaskingLogbackInitializer {
     }
 
     private void registerConverter(String key) {
-        PatternLayout.defaultConverterMap.put(key, MaskingMessageConverter.class.getName());
-        try {
-            PatternLayout.DEFAULT_CONVERTER_MAP.put(key, MaskingMessageConverter.class.getName());
-        } catch (UnsupportedOperationException ignored) {
-            // Some logback versions return unmodifiable maps.
-        }
         try {
             PatternLayout.DEFAULT_CONVERTER_SUPPLIER_MAP.put(key, MaskingMessageConverter::new);
         } catch (UnsupportedOperationException ignored) {

@@ -43,7 +43,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <kover.version>0.9.4</kover.version>
+        <kover.version>0.9.8</kover.version>
         <!-- Set to false: The Parent POM must be published for children to be valid on Maven Central -->
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>

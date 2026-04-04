@@ -1,12 +1,41 @@
 name: Maven Central Publish
 
 on:
+  push:
   release:
     types:
       - published
 
 jobs:
+  pre-release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate release secrets
+        run: |
+          missing=()
+          [ -n "${MAVEN_CENTRAL_USERNAME}" ] || missing+=("MAVEN_CENTRAL_USERNAME")
+          [ -n "${MAVEN_CENTRAL_PASSWORD}" ] || missing+=("MAVEN_CENTRAL_PASSWORD")
+          [ -n "${MAVEN_GPG_PASSPHRASE}" ] || missing+=("MAVEN_GPG_PASSPHRASE")
+          [ -n "${GPG_PRIVATE_KEY}" ] || missing+=("GPG_PRIVATE_KEY")
+
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
   publish:
+    needs:
+      - pre-release
+    if: github.event_name == 'release' && github.event.action == 'published'
     runs-on: ubuntu-24.04
     permissions:
       contents: read

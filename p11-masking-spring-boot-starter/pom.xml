@@ -9,6 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>p11-masking-spring-boot-starter</artifactId>
+    <name>p11-masking-spring-boot-starter</name>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

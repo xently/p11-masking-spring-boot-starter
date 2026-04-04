@@ -12,6 +12,7 @@
     <groupId>ke.co.xently</groupId>
     <artifactId>p11-masking-spring-boot</artifactId>
     <version>4.1.0</version>
+    <name>p11-masking-spring-boot</name>
     <description>Spring Boot autoconfiguration starters that masks sensitive data</description>
     <url>https://github.com/xently/p11-masking-spring-boot-starter</url>
 

@@ -15,7 +15,7 @@ import java.time.Instant;
 
 @Slf4j
 @ControllerAdvice
-public class KCBExceptionHandler {
+public class CoreExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleException(Exception exception, HttpServletRequest request) {
         log.error(exception.getMessage(), exception);
@@ -32,8 +32,8 @@ public class KCBExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler(KCBException.class)
-    public ResponseEntity<ProblemDetail> handle(KCBException exception, HttpServletRequest request) {
+    @ExceptionHandler(CoreHttpResponseException.class)
+    public ResponseEntity<ProblemDetail> handle(CoreHttpResponseException exception, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatus(exception.getStatusCode());
         problem.setDetail(exception.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));

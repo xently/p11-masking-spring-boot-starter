@@ -1,4 +1,4 @@
-# KCB P11 Masking Spring Boot Starter + Books API Demo
+# P11 Masking Spring Boot Starter + Books API Demo
 
 A spring boot starter and demo showing sensitive data masking in logs/JSON.
 

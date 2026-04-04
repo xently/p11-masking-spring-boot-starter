@@ -5,10 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @Getter
-public class KCBException extends ResponseStatusException {
+public class CoreHttpResponseException extends ResponseStatusException {
     private final String errorCode;
 
-    public KCBException(HttpStatus httpStatus, String errorCode) {
+    public CoreHttpResponseException(HttpStatus httpStatus, String errorCode) {
         super(httpStatus, errorCode);
         this.errorCode = errorCode;
     }

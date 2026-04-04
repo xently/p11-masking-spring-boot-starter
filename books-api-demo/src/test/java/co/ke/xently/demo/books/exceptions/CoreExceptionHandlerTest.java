@@ -18,14 +18,14 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class KCBExceptionHandlerTest {
+class CoreExceptionHandlerTest {
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
-                .setControllerAdvice(new KCBExceptionHandler())
+                .setControllerAdvice(new CoreExceptionHandler())
                 .build();
     }
 
@@ -36,9 +36,9 @@ class KCBExceptionHandlerTest {
             throw new RuntimeException("Test exception");
         }
 
-        @GetMapping("/test-kcb-exception")
-        public void throwKcbException() {
-            throw new KCBException(HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND");
+        @GetMapping("/test-core-exception")
+        public void throwCoreException() {
+            throw new CoreHttpResponseException(HttpStatus.NOT_FOUND, "BOOK_NOT_FOUND");
         }
 
         @GetMapping("/test-validation-exception")
@@ -69,16 +69,16 @@ class KCBExceptionHandlerTest {
     }
 
     @Nested
-    class KCBExceptionHandling {
+    class CoreExceptionHandling {
         @Test
-        void shouldHandleKCBException() throws Exception {
-            mockMvc.perform(get("/test-kcb-exception"))
+        void shouldHandleCoreException() throws Exception {
+            mockMvc.perform(get("/test-core-exception"))
                     .andExpect(status().isNotFound())
                     .andExpect(header().string("Content-Type", "application/problem+json"))
                     .andExpect(jsonPath("$.detail", containsString("BOOK_NOT_FOUND")))
                     .andExpect(jsonPath("$.errorCode", is("BOOK_NOT_FOUND")))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.instance", is("/test-kcb-exception")));
+                    .andExpect(jsonPath("$.instance", is("/test-core-exception")));
         }
     }
 }

@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Configuration;
                         name = "Harrison",
                         email = "oharry0535@gmail.com"
                 ),
-                description = "OpenAPI documentation for KCB Test",
-                title = "OpenAPI specification - KCB Test",
+                description = "OpenAPI documentation",
+                title = "OpenAPI specification",
                 version = "v1"
         ),
         servers = {@Server(

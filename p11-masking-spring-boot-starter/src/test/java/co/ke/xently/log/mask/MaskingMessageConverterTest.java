@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -137,6 +138,7 @@ class MaskingMessageConverterTest {
     private record LogCase(String name, String message, Object[] arguments, List<String> expected,
                            List<String> unexpected) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }
@@ -217,6 +219,7 @@ class MaskingMessageConverterTest {
 
     private record FieldCase(String name, String message, String rawValue, String expectedPrefix, String expectedSuffix) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }
@@ -224,6 +227,7 @@ class MaskingMessageConverterTest {
 
     private record PatternCase(String name, String rawValue) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }
@@ -232,6 +236,7 @@ class MaskingMessageConverterTest {
     private record CollectionCase(String name, String message, Object[] arguments,
                                   List<String> expected, List<String> unexpected) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }
@@ -239,6 +244,7 @@ class MaskingMessageConverterTest {
 
     private record SoapCase(String name, String message, List<String> expected, List<String> unexpected) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }

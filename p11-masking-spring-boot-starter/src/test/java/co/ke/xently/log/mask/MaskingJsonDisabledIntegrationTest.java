@@ -29,8 +29,10 @@ class MaskingJsonDisabledIntegrationTest {
         var json = objectMapper.writeValueAsString(dto);
 
         assertAll(
-                () -> assertThat(json, containsString("\"email\":\"test@test.com\"")),
-                () -> assertThat(json, containsString("\"phoneNumber\":\"1234567890\"")),
+                () -> assertThat(json, containsString("""
+                        "email":"test@test.com\"""")),
+                () -> assertThat(json, containsString("""
+                        "phoneNumber":"1234567890\"""")),
                 () -> assertThat(json, not(containsString("t***@test.com"))),
                 () -> assertThat(json, not(containsString("0*********")))
         );
@@ -43,8 +45,10 @@ class MaskingJsonDisabledIntegrationTest {
         var json = objectMapper.writeValueAsString(dto);
 
         assertAll(
-                () -> assertThat(json, containsString("\"ssn\":\"1234567890\"")),
-                () -> assertThat(json, not(containsString("\"ssn\":\"1*********\"")))
+                () -> assertThat(json, containsString("""
+                        "ssn":"1234567890\"""")),
+                () -> assertThat(json, not(containsString("""
+                        "ssn":"1*********\"""")))
         );
     }
 

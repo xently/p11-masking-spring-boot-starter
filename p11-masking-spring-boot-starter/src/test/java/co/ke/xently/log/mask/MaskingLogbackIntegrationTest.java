@@ -1,5 +1,6 @@
 package co.ke.xently.log.mask;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -51,6 +52,7 @@ class MaskingLogbackIntegrationTest {
     private record LogCase(String name, Runnable action, String marker, List<String> expected,
                            List<String> unexpected) {
         @Override
+        @NonNull
         public String toString() {
             return name;
         }

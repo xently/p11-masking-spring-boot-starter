@@ -55,8 +55,10 @@ class MaskingIntegrationTest {
         var json = objectMapper.writeValueAsString(dto);
 
         assertAll(
-                () -> assertThat(json, containsString("\"phoneNumber\":\"######7890\"")),
-                () -> assertThat(json, containsString("\"title\":\"Title\""))
+                () -> assertThat(json, containsString("""
+                        "phoneNumber":"######7890\"""")),
+                () -> assertThat(json, containsString("""
+                        "title":"Title\""""))
         );
     }
 

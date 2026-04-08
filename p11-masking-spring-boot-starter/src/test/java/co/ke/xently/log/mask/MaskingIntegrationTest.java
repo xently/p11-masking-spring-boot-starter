@@ -7,6 +7,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @SpringBootTest(properties = {
         "p11.masking.enabled=true",
@@ -27,10 +28,12 @@ class MaskingIntegrationTest {
 
         var json = objectMapper.writeValueAsString(dto);
 
-        assertThat(json, containsString("""
-                "email":"t***@test.com\""""));
-        assertThat(json, containsString("""
-                "title":"Title\""""));
+        assertAll(
+                () -> assertThat(json, containsString("""
+                        "email":"t***@test.com\"""")),
+                () -> assertThat(json, containsString("""
+                        "title":"Title\""""))
+        );
     }
 
     @Test
@@ -39,8 +42,10 @@ class MaskingIntegrationTest {
 
         var json = objectMapper.writeValueAsString(dto);
 
-        assertThat(json, containsString("\"ssn\":\"1*********\""));
-        assertThat(json, containsString("\"title\":\"Title\""));
+        assertAll(
+                () -> assertThat(json, containsString("\"ssn\":\"1*********\"")),
+                () -> assertThat(json, containsString("\"title\":\"Title\""))
+        );
     }
 
     @Test
@@ -49,8 +54,10 @@ class MaskingIntegrationTest {
 
         var json = objectMapper.writeValueAsString(dto);
 
-        assertThat(json, containsString("\"phoneNumber\":\"######7890\""));
-        assertThat(json, containsString("\"title\":\"Title\""));
+        assertAll(
+                () -> assertThat(json, containsString("\"phoneNumber\":\"######7890\"")),
+                () -> assertThat(json, containsString("\"title\":\"Title\""))
+        );
     }
 
     private record TestDto(String title, String author, String email, String phoneNumber) {

@@ -89,12 +89,14 @@ class BookControllerAPITest {
                 .body("phoneNumber", equalTo("0*********"));
 
         var line = firstLineContaining(output.getOut(), "Creating book:");
-        assertThat(line, not(emptyString()));
-        assertMasked(line,
-                "u********@example.com",
-                "0*********",
-                "uncle.bob@example.com",
-                "0712345678"
+        assertAll(
+                () -> assertThat(line, not(emptyString())),
+                () -> assertMasked(line,
+                        "u********@example.com",
+                        "0*********",
+                        "uncle.bob@example.com",
+                        "0712345678"
+                )
         );
     }
 
@@ -126,12 +128,14 @@ class BookControllerAPITest {
         given().when().get("/api/v1/books/{id}", id).then().statusCode(404);
 
         var line = firstLineContaining(output.getOut(), "Updating book with id:");
-        assertThat(line, not(emptyString()));
-        assertMasked(line,
-                "n**@test.com",
-                "0*********",
-                "new@test.com",
-                "0711111111"
+        assertAll(
+                () -> assertThat(line, not(emptyString())),
+                () -> assertMasked(line,
+                        "n**@test.com",
+                        "0*********",
+                        "new@test.com",
+                        "0711111111"
+                )
         );
     }
 }

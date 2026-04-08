@@ -106,11 +106,13 @@ class BookServiceTest {
 
         List<BookDto> list = service.getAllBooks();
 
-        assertThat(list.size(), is(2));
-        assertThat(list, contains(
-                new BookDto("T1", "A1", "e1@test.com", "0712345678"),
-                new BookDto("T2", "A2", "e2@test.com", "0712345679")
-        ));
+        assertAll(
+                () -> assertThat(list.size(), is(2)),
+                () -> assertThat(list, contains(
+                        new BookDto("T1", "A1", "e1@test.com", "0712345678"),
+                        new BookDto("T2", "A2", "e2@test.com", "0712345679")
+                ))
+        );
     }
 
     @ParameterizedTest(name = "shouldCreateBookFromDto: {0},{1}")
@@ -129,8 +131,10 @@ class BookServiceTest {
         verify(bookRepository).save(captor.capture());
         Book toSave = captor.getValue();
 
-        assertThat(toSave.getId(), nullValue());
-        assertThat(result, equalTo(new BookDto(title, author, input.email(), input.phoneNumber())));
+        assertAll(
+                () -> assertThat(toSave.getId(), nullValue()),
+                () -> assertThat(result, equalTo(new BookDto(title, author, input.email(), input.phoneNumber())))
+        );
     }
 
     @Test
@@ -159,11 +163,13 @@ class BookServiceTest {
         var update = new BookDto("New", "Auth2", "new@test.com", "0711111111");
         BookDto updated = service.updateBook(5L, update);
 
-        assertThat(updated, equalTo(update));
-        assertThat(existing.getTitle(), equalTo("New"));
-        assertThat(existing.getAuthor(), equalTo("Auth2"));
-        assertThat(existing.getEmail(), equalTo("new@test.com"));
-        assertThat(existing.getPhoneNumber(), equalTo("0711111111"));
+        assertAll(
+                () -> assertThat(updated, equalTo(update)),
+                () -> assertThat(existing.getTitle(), equalTo("New")),
+                () -> assertThat(existing.getAuthor(), equalTo("Auth2")),
+                () -> assertThat(existing.getEmail(), equalTo("new@test.com")),
+                () -> assertThat(existing.getPhoneNumber(), equalTo("0711111111"))
+        );
     }
 
     @Test
@@ -238,8 +244,10 @@ class BookServiceTest {
 
             var line = firstLineContaining(output.getOut(), logCase.marker());
 
-            assertThat(line, not(emptyString()));
-            assertMasked(line, logCase.expected(), logCase.unexpected());
+            assertAll(
+                    () -> assertThat(line, not(emptyString())),
+                    () -> assertMasked(line, logCase.expected(), logCase.unexpected())
+            );
         }
     }
 }

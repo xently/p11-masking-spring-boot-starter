@@ -95,8 +95,10 @@ class MaskingLogbackIntegrationTest {
 
             var line = firstLineContaining(output.getOut(), logCase.marker());
 
-            assertThat(line, not(emptyString()));
-            assertMasked(line, logCase.expected(), logCase.unexpected());
+            assertAll(
+                    () -> assertThat(line, not(emptyString())),
+                    () -> assertMasked(line, logCase.expected(), logCase.unexpected())
+            );
         }
     }
 }

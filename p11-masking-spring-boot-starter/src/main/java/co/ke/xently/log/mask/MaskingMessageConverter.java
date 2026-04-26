@@ -3,7 +3,10 @@ package co.ke.xently.log.mask;
 import ch.qos.logback.classic.pattern.ClassicConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -192,7 +195,7 @@ public class MaskingMessageConverter extends ClassicConverter {
 
     private String applyFieldNameMasking(String message, Map<String, MaskOverride> overrides) {
         var fields = properties.getFields();
-        if (fields == null || fields.isEmpty()) return message;
+        if (fields.isEmpty()) return message;
 
         var masked = message;
         for (var field : fields) {
@@ -205,7 +208,7 @@ public class MaskingMessageConverter extends ClassicConverter {
 
     private String applyXmlMasking(String message, Map<String, MaskOverride> overrides) {
         var fields = properties.getFields();
-        if (fields == null || fields.isEmpty()) return message;
+        if (fields.isEmpty()) return message;
 
         var masked = message;
         for (var field : fields) {
@@ -291,6 +294,10 @@ public class MaskingMessageConverter extends ClassicConverter {
         masked = maskMatches(EMAIL_PATTERN, masked);
         masked = maskMatches(PHONE_PATTERN, masked);
         masked = maskMatches(CARD_PATTERN, masked);
+        for (var pattern : properties.getPatterns()) {
+            if (pattern.isBlank()) continue;
+            masked = maskMatches(Pattern.compile(pattern), masked);
+        }
         return masked;
     }
 
@@ -298,9 +305,23 @@ public class MaskingMessageConverter extends ClassicConverter {
         var matcher = pattern.matcher(message);
         var sb = new StringBuilder();
         while (matcher.find()) {
-            var value = matcher.group();
-            var masked = maskingService.mask(value, null, null);
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(masked));
+            int groupCount = matcher.groupCount();
+            var result = "";
+            if (groupCount > 0) {
+                // If there are capturing groups, mask only those groups
+                result = matcher.group(0);
+                for (int i = 1; i <= groupCount; i++) {
+                    var groupValue = matcher.group(i);
+                    if (groupValue != null && !groupValue.isBlank()) {
+                        var maskedGroup = maskingService.mask(groupValue, null, null);
+                        result = result.replace(groupValue, maskedGroup);
+                    }
+                }
+            } else {
+                var value = matcher.group();
+                result = maskingService.mask(value, null, null);
+            }
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(result));
         }
         matcher.appendTail(sb);
         return sb.toString();

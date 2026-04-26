@@ -1,8 +1,10 @@
 package co.ke.xently.log.mask;
 
 import lombok.*;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,6 +18,7 @@ public class P11MaskingProperties {
     @Builder.Default
     private boolean enabled = true;
     private List<String> fields;
+    private List<String> patterns;
     private static final List<String> DEFAULT_FIELDS = List.of(
             "password",
             "passcode",
@@ -39,15 +42,21 @@ public class P11MaskingProperties {
     @Builder.Default
     private Json json = new Json();
 
+    @NonNull
     public List<String> getFields() {
         if (fields != null && !fields.isEmpty()) return fields;
         return DEFAULT_FIELDS;
     }
 
+    public @NonNull List<@NonNull String> getPatterns() {
+        if (patterns == null) return Collections.emptyList();
+        return patterns;
+    }
+
     public boolean isFieldConfigured(String name) {
         if (name == null) return false;
         var effective = getFields();
-        if (effective == null || effective.isEmpty()) return false;
+        if (effective.isEmpty()) return false;
         var normalized = name.toLowerCase(Locale.ROOT);
         return effective.stream()
                 .filter(value -> value != null && !value.isBlank())

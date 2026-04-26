@@ -18,13 +18,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 class MaskingMessageConverterTest {
@@ -217,7 +215,13 @@ class MaskingMessageConverterTest {
         }
     }
 
-    private record FieldCase(String name, String message, String rawValue, String expectedPrefix, String expectedSuffix) {
+    private record FieldCase(
+            String name,
+            String message,
+            String rawValue,
+            String expectedPrefix,
+            String expectedSuffix
+    ) {
         @Override
         @NonNull
         public String toString() {
@@ -440,6 +444,45 @@ class MaskingMessageConverterTest {
             assertAll(
                     () -> assertThat(output, containsString("4****")),
                     () -> assertThat(output, not(containsString(RAW_CARD)))
+            );
+        }
+
+        @Test
+        void shouldMaskCustomPatterns() {
+            var customProperties = P11MaskingProperties.builder()
+                    .patterns(List.of(Pattern.compile("""
+                            "[a-z]+_token":\\s*"([^"]+)\"""").pattern()))
+                    .build();
+            var customService = new MaskingService(customProperties);
+            MaskingMessageConverter.initialize(customService, customProperties);
+
+            // language=JSON
+            var message = """
+                    {
+                      "access_token": "eyJleHAiOjE3NzcyMDUzODgsImlhdCI6MTc3NzIwNTA4",
+                      "expires_in": 300,
+                      "refresh_expires_in": 1800,
+                      "refresh_token": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2l",
+                      "token_type": "Bearer",
+                      "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6",
+                      "not-before-policy": 0,
+                      "session_state": "ta15irl9lXT7Vx3K96i-TLgi",
+                      "scope": "openid"
+                    }""";
+            var output = convert(message);
+
+            assertThat(
+                    output,
+                    allOf(
+                            containsString("""
+                                    "access_token": "********\""""),
+                            containsString("""
+                                    "refresh_token": "********\""""),
+                            containsString("""
+                                    "id_token": "********\""""),
+                            containsString("""
+                                    "session_state": "ta15irl9lXT7Vx3K96i-TLgi\"""")
+                    )
             );
         }
     }

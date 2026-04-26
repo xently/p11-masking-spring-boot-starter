@@ -1,30 +1,28 @@
 package co.ke.xently.log.mask;
 
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.OutputStreamAppender;
+import lombok.AllArgsConstructor;
 import org.slf4j.LoggerFactory;
 
+import java.util.IdentityHashMap;
+
+@AllArgsConstructor
 public class MaskingLogbackInitializer {
     private final MaskingService maskingService;
     private final P11MaskingProperties properties;
 
-    public MaskingLogbackInitializer(MaskingService maskingService, P11MaskingProperties properties) {
-        this.maskingService = maskingService;
-        this.properties = properties;
-    }
-
     public void initialize() {
         MaskingMessageConverter.initialize(maskingService, properties);
         var loggerFactory = LoggerFactory.getILoggerFactory();
-        if (loggerFactory instanceof LoggerContext) {
+        if (loggerFactory instanceof LoggerContext context) {
             registerConverter("m");
             registerConverter("msg");
             registerConverter("message");
-            restartPatternEncoders((LoggerContext) loggerFactory);
+            restartPatternEncoders(context);
         }
     }
 
@@ -37,12 +35,12 @@ public class MaskingLogbackInitializer {
     }
 
     private void restartPatternEncoders(LoggerContext context) {
-        var seen = new java.util.IdentityHashMap<Appender<?>, Boolean>();
-        for (Logger logger : context.getLoggerList()) {
+        var seen = new IdentityHashMap<Appender<?>, Boolean>();
+        for (var logger : context.getLoggerList()) {
             var iterator = logger.iteratorForAppenders();
             while (iterator.hasNext()) {
                 var appender = iterator.next();
-                if (seen.put(appender, Boolean.TRUE) != null) continue;
+                if (seen.put(appender, true) != null) continue;
                 if (appender instanceof OutputStreamAppender<?> streamAppender) {
                     var encoder = streamAppender.getEncoder();
                     if (encoder instanceof PatternLayoutEncoder patternEncoder) {

@@ -18,8 +18,9 @@ public class MaskingService {
         return switch (resolveStyle(styleOverride)) {
             case FULL, DEFAULT -> ch.repeat(8);
             case LAST4 -> {
-                if (input.length() <= 4) yield ch.repeat(input.length());
-                yield ch.repeat(input.length() - 4) + input.substring(input.length() - 4);
+                int unmaskedCharacters = 4;
+                if (input.length() <= unmaskedCharacters) yield ch.repeat(input.length());
+                yield ch.repeat(input.length() - unmaskedCharacters) + input.substring(input.length() - unmaskedCharacters);
             }
             case PARTIAL -> {
                 if (input.contains("@")) { // Email

@@ -55,7 +55,7 @@ public class MaskingMessageConverter extends ClassicConverter {
         if (arg == null || depth > MAX_DEPTH) return;
         if (arg instanceof Throwable) return;
         if (isSimple(arg)) return;
-        if (context.visited.put(arg, Boolean.TRUE) != null) return;
+        if (context.visited.put(arg, true) != null) return;
 
         if (arg instanceof Map<?, ?> map) {
             for (var entry : map.entrySet()) {
@@ -64,7 +64,7 @@ public class MaskingMessageConverter extends ClassicConverter {
             return;
         }
         if (arg instanceof Iterable<?> iterable) {
-            for (Object item : iterable) {
+            for (var item : iterable) {
                 inspectArgument(item, context, depth + 1);
             }
             return;
@@ -87,7 +87,7 @@ public class MaskingMessageConverter extends ClassicConverter {
     private void handleRecord(Object arg, MaskingContext context, int depth) {
         var components = arg.getClass().getRecordComponents();
         if (components == null) return;
-        for (RecordComponent component : components) {
+        for (var component : components) {
             try {
                 var accessor = component.getAccessor();
                 var value = accessor.invoke(arg);
@@ -109,7 +109,7 @@ public class MaskingMessageConverter extends ClassicConverter {
                 type = type.getSuperclass();
                 continue;
             }
-            for (Field field : fields) {
+            for (var field : fields) {
                 if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) continue;
                 try {
                     if (!field.canAccess(arg)) {
@@ -136,7 +136,7 @@ public class MaskingMessageConverter extends ClassicConverter {
                 type = type.getSuperclass();
                 continue;
             }
-            for (Method method : methods) {
+            for (var method : methods) {
                 if (method.getParameterCount() != 0 || method.getReturnType() == void.class) continue;
                 var annotation = method.getAnnotation(Mask.class);
                 if (annotation == null) continue;
@@ -195,7 +195,7 @@ public class MaskingMessageConverter extends ClassicConverter {
         if (fields == null || fields.isEmpty()) return message;
 
         var masked = message;
-        for (String field : fields) {
+        for (var field : fields) {
             if (field == null || field.isBlank()) continue;
             var override = overrides.get(normalize(field));
             masked = maskFieldOccurrences(masked, field, override);
@@ -208,7 +208,7 @@ public class MaskingMessageConverter extends ClassicConverter {
         if (fields == null || fields.isEmpty()) return message;
 
         var masked = message;
-        for (String field : fields) {
+        for (var field : fields) {
             if (field == null || field.isBlank()) continue;
             var override = overrides.get(normalize(field));
             masked = maskXmlElement(masked, field, override);

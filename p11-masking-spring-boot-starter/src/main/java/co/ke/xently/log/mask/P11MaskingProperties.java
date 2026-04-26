@@ -16,8 +16,7 @@ public class P11MaskingProperties {
     @Builder.Default
     private boolean enabled = true;
     private List<String> fields;
-    @Builder.Default
-    private List<String> defaultFields = List.of(
+    private static final List<String> DEFAULT_FIELDS = List.of(
             "password",
             "passcode",
             "secret",
@@ -42,7 +41,7 @@ public class P11MaskingProperties {
 
     public List<String> getFields() {
         if (fields != null && !fields.isEmpty()) return fields;
-        return defaultFields;
+        return DEFAULT_FIELDS;
     }
 
     public boolean isFieldConfigured(String name) {

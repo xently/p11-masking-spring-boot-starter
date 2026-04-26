@@ -39,7 +39,7 @@ public class MaskingMessageConverter extends ClassicConverter {
         var context = new MaskingContext();
         var args = event.getArgumentArray();
         if (args != null) {
-            for (Object arg : args) {
+            for (var arg : args) {
                 inspectArgument(arg, context, 0);
             }
         }
@@ -222,17 +222,17 @@ public class MaskingMessageConverter extends ClassicConverter {
                         + Pattern.quote(field) + "\\s*>)"
         );
         var matcher = pattern.matcher(message);
-        var buffer = new StringBuilder();
+        var sb = new StringBuilder();
         while (matcher.find()) {
             var prefix = matcher.group(1);
             var value = matcher.group(2);
             var suffix = matcher.group(3);
 
             var replacement = prefix + maskXmlValue(value, override) + suffix;
-            matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
-        matcher.appendTail(buffer);
-        return buffer.toString();
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
     private String maskXmlValue(String value, MaskOverride override) {
@@ -259,7 +259,7 @@ public class MaskingMessageConverter extends ClassicConverter {
                 "(?i)(\\b" + Pattern.quote(field) + "\\b\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^,}\\]\\s]+)"
         );
         var matcher = pattern.matcher(message);
-        var buffer = new StringBuilder();
+        var sb = new StringBuilder();
         while (matcher.find()) {
             var prefix = matcher.group(1);
             var rawValue = matcher.group(2);
@@ -280,10 +280,10 @@ public class MaskingMessageConverter extends ClassicConverter {
                     override != null ? override.maskCharacter : null
             );
             var replacement = prefix + quote + maskedValue + quote;
-            matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
-        matcher.appendTail(buffer);
-        return buffer.toString();
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
     private String applyPatternMasking(String message) {

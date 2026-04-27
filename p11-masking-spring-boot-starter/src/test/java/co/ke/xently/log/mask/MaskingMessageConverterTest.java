@@ -462,6 +462,7 @@ class MaskingMessageConverterTest {
                                       "session_state": "ta15irl9lXT7Vx3K96i-TLgi",
                                       "scope": "openid"
                                     }""",
+                            // language=JSON
                             """
                                     {
                                       "access_token": "********",

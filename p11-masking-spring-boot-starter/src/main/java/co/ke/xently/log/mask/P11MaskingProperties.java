@@ -19,22 +19,6 @@ public class P11MaskingProperties {
     private boolean enabled = true;
     private List<String> fields;
     private List<String> patterns;
-    private static final List<String> DEFAULT_FIELDS = List.of(
-            "password",
-            "passcode",
-            "secret",
-            "token",
-            "accessToken",
-            "refreshToken",
-            "ssn",
-            "creditCard",
-            "cardNumber",
-            "email",
-            "phone",
-            "phoneNumber",
-            "accountNumber",
-            "pin"
-    );
     @Builder.Default
     private MaskingStyle maskStyle = MaskingStyle.FULL;
     @Builder.Default
@@ -45,7 +29,22 @@ public class P11MaskingProperties {
     @NonNull
     public List<@NonNull String> getFields() {
         if (fields != null && !fields.isEmpty()) return fields;
-        return DEFAULT_FIELDS;
+        return List.of(
+                "password",
+                "passcode",
+                "secret",
+                "token",
+                "accessToken",
+                "refreshToken",
+                "ssn",
+                "creditCard",
+                "cardNumber",
+                "email",
+                "phone",
+                "phoneNumber",
+                "accountNumber",
+                "pin"
+        );
     }
 
     public @NonNull List<@NonNull String> getPatterns() {

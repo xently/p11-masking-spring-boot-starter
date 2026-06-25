@@ -15,9 +15,9 @@ public class LogbackMaskingContextInitializer implements ApplicationContextIniti
         var maskingService = new LogMaskingService(properties);
         var forgingService = new LogForgingService(properties);
 
-        if (ClassUtils.isPresent("ch.qos.logback.classic.LoggerContext", null)) {
-            var initializer = new LogbackMaskingAndForgingInitializer(maskingService, forgingService, properties);
-            initializer.initialize();
+        if (ClassUtils.isPresent("ch.qos.logback.classic.LoggerContext", context.getClassLoader())) {
+            new LogbackMaskingAndForgingInitializer(maskingService, forgingService, properties)
+                    .initialize();
         }
 
         context.getBeanFactory().registerSingleton("logProperties", properties);
